@@ -4,6 +4,7 @@
       # General utilities.
       - neovim
       - git
+      - tree
     state: present
     update_cache: true
 

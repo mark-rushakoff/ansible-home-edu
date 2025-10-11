@@ -79,3 +79,9 @@ sudo apt install ansible
 # And install the community.general collection, for installing flatpak apps from ansible.
 ansible-galaxy collection install community.general
 ```
+
+Finally we should be able to run the playbook:
+
+```sh
+ansible-playbook -i inventory.ini playbook.yml -v
+```
