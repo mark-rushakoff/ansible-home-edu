@@ -40,13 +40,13 @@
         update_cache: yes
         cache_valid_time: 3600
 
-    - name: Install packages
+    - name: Install PPA packages
       apt:
         name: "{{ packages_to_install }}"
         state: present
         update_cache: yes
 
-    - name: Install packages
+    - name: Autoremove after PPA packages
       apt:
         autoremove: yes
 
@@ -65,8 +65,11 @@
       # Basic educational.
       - org.kde.gcompris
 
+      # Programming educational.
+      - org.kde.kturtle
+
   block:
-    - name: Install requested applications
+    - name: Install flatpak applications
       community.general.flatpak:
         name: "{{ flathub_apps }}"
         state: present

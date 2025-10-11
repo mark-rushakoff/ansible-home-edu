@@ -63,3 +63,5 @@
     content: "{{ furnace_version }}"
     dest: "{{ furnace_state_file }}"
   when: not furnace_state.stat.exists or furnace_installed_version != furnace_version
+
+# TODO: add .desktop file
