@@ -78,5 +78,5 @@
 - name: Download Furnace Tracker
   include_tasks: furnace.yml
 
-# TODO:
-# - aseprite (will build from source)
+- name: Build aseprite
+  include_tasks: aseprite.yml
