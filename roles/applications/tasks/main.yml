@@ -5,6 +5,7 @@
       - neovim
       - git
       - tree
+      - htop
     state: present
     update_cache: true
 

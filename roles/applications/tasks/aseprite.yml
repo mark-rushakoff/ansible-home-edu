@@ -1,7 +1,7 @@
 - name: Set aseprite variables
   set_fact:
     aseprite_version: "v1.3.15.3"
-    aseprite_sha256: f26ce6420802c5f8c4f88e843de5521a9fb1c860
+    aseprite_sha: f26ce6420802c5f8c4f88e843de5521a9fb1c860
     aseprite_install_dir: /opt/aseprite
     aseprite_state_file: /opt/aseprite/.aseprite_version
 
@@ -27,7 +27,7 @@
     version: "{{ aseprite_version }}"
     update: yes
     clone: yes
-    register: git_checkout
+  register: git_checkout
   when: needs_rebuild
 
 - name: Verify SHA matches expected (for supply chain security)
