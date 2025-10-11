@@ -54,6 +54,19 @@
     update_cache: yes
   when: needs_rebuild
 
+- name: Ensure .build directory exists (skipping build.sh interactivity)
+  file:
+    path: "{{ aseprite_install_dir }}/.build"
+    state: directory
+    mode: '0755'
+  when: needs_rebuild
+
+- name: Place 'userkind' file in .build directory (skipping build.sh interactivity)
+  copy:
+    content: "user"
+    dest: "{{ aseprite_install_dir }}/.build/userkind"
+  when: needs_rebuild
+
 - name: Build aseprite using build.sh
   command: ./build.sh
   args:
