@@ -22,7 +22,7 @@
       - inkscape
       - yt-dlp
 
-  tasks:
+  block:
     - name: Update apt cache
       apt:
         update_cache: yes
@@ -60,7 +60,7 @@
       # Basic educational.
       - org.kde.gcompris
 
-  tasks:
+  block:
     - name: Install requested applications
       community.general.flatpak:
         name: "{{ flathub_apps }}"

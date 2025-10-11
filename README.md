@@ -83,5 +83,5 @@ ansible-galaxy collection install community.general
 Finally we should be able to run the playbook:
 
 ```sh
-ansible-playbook -i inventory.ini playbook.yml -v
+ansible-playbook -i inventory.ini playbook.yml -v -K
 ```
