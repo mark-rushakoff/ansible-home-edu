@@ -18,6 +18,11 @@
   register: furnace_current_version
   when: furnace_state.stat.exists
 
+- name: Set furnace_installed_version from state file content
+  set_fact:
+    furnace_installed_version: "{{ furnace_current_version.content | b64decode | trim }}"
+  when: furnace_state.stat.exists and furnace_current_version.content is defined
+
 - name: Create furnace installation directory
   file:
     path: "{{ furnace_install_dir }}"
