@@ -69,7 +69,7 @@
     - name: Install requested applications
       community.general.flatpak:
         name: "{{ flathub_apps }}"
-        state: latest
+        state: present
         method: system
 
 - name: Download Furnace Tracker
