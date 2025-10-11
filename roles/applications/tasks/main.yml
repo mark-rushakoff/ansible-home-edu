@@ -1,0 +1,73 @@
+- name: Install general packages with apt
+  apt:
+    name:
+      # General utilities.
+      - neovim
+      - git
+    state: present
+    update_cache: true
+
+- name: Install PPA repositories and packages
+  become: yes
+
+  vars:
+    ppa_repositories:
+      # Graphics.
+      - ppa:inkscape.dev/stable
+
+      # For downloading tutorial/educational videos for offline use.
+      - ppa:tomtomtom/yt-dlp
+    packages_to_install:
+      - inkscape
+      - yt-dlp
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Add PPA repositories
+      apt_repository:
+        repo: "{{ item }}"
+        state: present
+        update_cache: yes
+      loop: "{{ ppa_repositories }}"
+
+    - name: Install packages
+      apt:
+        name: "{{ packages_to_install }}"
+        state: present
+        update_cache: yes
+
+    - name: Install packages
+      apt:
+        autoremove: yes
+
+- name: Install Flatpak applications
+  become: yes
+
+  vars:
+    flathub_apps:
+      # Graphics.
+      - org.gimp.GIMP
+      - com.github.PintaProject.Pinta
+
+      # Music.
+      - org.famistudio.FamiStudio
+
+      # Basic educational.
+      - org.kde.gcompris
+
+  tasks:
+    - name: Install requested applications
+      community.general.flatpak:
+        name: "{{ flathub_apps }}"
+        state: latest
+        method: system
+
+- name: Download Furnace Tracker
+  include_tasks: furnace.yml
+
+# TODO:
+# - aseprite (will build from source)
