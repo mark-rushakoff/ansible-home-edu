@@ -23,17 +23,22 @@
       - yt-dlp
 
   block:
-    - name: Update apt cache
-      apt:
-        update_cache: yes
-        cache_valid_time: 3600
+    - name: Get Ubuntu base codename from os-release
+      set_fact:
+        ubuntu_codename: "{{ lookup('ini', 'UBUNTU_CODENAME type=properties file=/etc/os-release') }}"
 
     - name: Add PPA repositories
       apt_repository:
         repo: "{{ item }}"
         state: present
         update_cache: yes
+        codename: "{{ ubuntu_codename }}"
       loop: "{{ ppa_repositories }}"
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
 
     - name: Install packages
       apt:
