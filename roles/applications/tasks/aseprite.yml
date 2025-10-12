@@ -5,6 +5,13 @@
     aseprite_install_dir: /opt/aseprite
     aseprite_state_file: /opt/aseprite/.aseprite_version
 
+    skia_tag: "m124-08a5439a6b" # Tagged release for m124
+    skia_sha: 08a5439a6be726021c1c1905d23ce298a3edc5e4
+    skia_install_dir: /opt/skia-aseprite
+    skia_state_file: /opt/skia-aseprite/.skia_version
+
+    depot_tools_install_dir: /opt/depot_tools
+
 - name: Check if aseprite version state file exists
   stat:
     path: "{{ aseprite_state_file }}"
@@ -37,13 +44,13 @@
     fail_msg: "expected SHA {{ aseprite_sha }}, got {{ git_checkout.after }}"
   when: needs_rebuild
 
-- name: Update submodules
+- name: Update aseprite submodules
   command: git submodule update --init --recursive
   args:
     chdir: "{{ aseprite_install_dir }}"
   when: needs_rebuild
 
-- name: Install build dependencies
+- name: Install aseprite and skia build dependencies
   apt:
     name:
       - g++
@@ -65,6 +72,49 @@
   copy:
     content: "user"
     dest: "{{ aseprite_install_dir }}/.build/userkind"
+  when: needs_rebuild
+
+- name: Clone or checkout (skia for aseprite)
+  git:
+    repo: "https://github.com/aseprite/skia.git"
+    dest: "{{ skia_install_dir }}"
+    version: "{{ skia_version }}"
+    update: yes
+    clone: yes
+  register: git_checkout
+  when: needs_rebuild
+
+- name: Verify skia SHA matches expected (for supply chain security)
+  assert:
+    that:
+      - git_checkout.after == skia_sha
+    fail_msg: "expected SHA {{ skia_sha }}, got {{ git_checkout.after }}"
+  when: needs_rebuild
+
+- name: Clone or checkout depot_tools
+  git:
+    repo: "https://chromium.googlesource.com/chromium/tools/depot_tools.git"
+    dest: "{{ depot_tools_install_dir }}"
+    version: "main"
+    update: yes
+    clone: yes
+  when: needs_rebuild
+
+- name: Build skia
+  command: |
+    python3 tools/git-sync-deps &&
+    python3 bin/fetch-ninja &&
+    gn gen out/Release-x64 --args="is_debug=false is_official_build=true skia_use_system_expat=false skia_use_system_icu=false skia_use_system_libjpeg_turbo=false skia_use_system_libpng=false skia_use_system_libwebp=false skia_use_system_zlib=false skia_use_freetype=true skia_use_harfbuzz=true skia_pdf_subset_harfbuzz=true skia_use_system_freetype2=false skia_use_system_harfbuzz=false" &&
+    ninja -C out/Release-x64 skia modules
+  args:
+    chdir: "{{ skia_install_dir }}"
+  environment:
+    PATH: {{ depot_tools_install_dir }}:$PATH
+
+- name: Place m124_skia_dir in .build directory
+  copy:
+    content: "{{ skia_install_dir }}"
+    dest: "{{ aseprite_install_dir }}/.build/m124_skia_dir"
   when: needs_rebuild
 
 - name: Build aseprite using build.sh
