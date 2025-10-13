@@ -1,0 +1,16 @@
+- name: Update apt cache
+  apt:
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Install essential system packages
+  apt:
+    name:
+      - quota
+    state: present
+
+- name: Create ansible-builder user
+  ansible.builtin.user:
+    name: ansible-builder
+    state: present
+    create_home: yes
