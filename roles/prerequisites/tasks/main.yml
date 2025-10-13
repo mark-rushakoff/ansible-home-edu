@@ -6,7 +6,8 @@
 - name: Install essential system packages
   apt:
     name:
-      - quota
+      - acl # For switching to ansible-builder user.
+      - quota # For disk management stuff later.
     state: present
 
 - name: Create ansible-builder user
