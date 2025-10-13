@@ -57,12 +57,13 @@
 
     - name: Install aseprite and skia build dependencies
       become: yes
+      become_user: root # Explicitly need root due to outer 'become'.
       apt:
         name:
           - g++
           - cmake
           - ninja-build
-          # Definitely missing others here.
+          - libfontconfig1-dev
         state: present
         update_cache: yes
       when: needs_rebuild
