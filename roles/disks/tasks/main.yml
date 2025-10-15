@@ -44,3 +44,6 @@
         opts: bind
         state: mounted
       loop: "{{ shared_dirs }}"
+
+- name: Enable quotas
+  include_tasks: quotas.yml

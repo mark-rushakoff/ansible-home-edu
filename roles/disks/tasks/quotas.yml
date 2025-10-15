@@ -1,0 +1,19 @@
+- name: Enable quotas on /home mount
+  mount:
+    path: /home
+    src: /dev/vg-data/lv-home
+    fstype: ext4
+    opts: defaults,usrquota,grpquota
+    state: mounted
+
+- name: Remount /home to apply quota options
+  command: mount -o remount /home
+  changed_when: false
+
+- name: Create quota files on /home
+  command: quotacheck -cugm /home
+  args:
+    creates: /home/aquota.user
+
+- name: Enable quotas on /home
+  command: quotaon /home
