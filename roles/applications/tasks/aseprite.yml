@@ -66,6 +66,10 @@
           # Needed for skia specifically:
           - libfontconfig1-dev
           - libgl1-mesa-dev
+          # And for aseprite:
+          - libxcursor-dev
+          - libxi-dev
+          - libxrandr-dev
         state: present
         update_cache: yes
       when: needs_rebuild

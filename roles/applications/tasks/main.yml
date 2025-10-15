@@ -6,6 +6,7 @@
       - git
       - tree
       - htop
+      - ffmpeg # Assists yt-dlp.
     state: present
     update_cache: true
 
