@@ -3,4 +3,5 @@
   become: yes
   roles:
     - prerequisites
+    - disks
     - applications

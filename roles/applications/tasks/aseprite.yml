@@ -63,7 +63,9 @@
           - g++
           - cmake
           - ninja-build
+          # Needed for skia specifically:
           - libfontconfig1-dev
+          - libgl1-mesa-dev
         state: present
         update_cache: yes
       when: needs_rebuild

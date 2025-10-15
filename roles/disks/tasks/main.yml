@@ -1,0 +1,46 @@
+- name: Create /mnt/shared mount point
+  file:
+    path: /mnt/shared
+    state: directory
+    mode: 0755
+
+- name: Mount lv-shared to /mnt/shared
+  mount:
+    path: /mnt/shared
+    src: /dev/vg-data/lv-shared
+    fstype: ext4
+    opts: defaults
+    state: mounted
+
+- name: Create source directories for shared
+  vars:
+    shared_dirs:
+      - videos
+      - documents
+      - music
+
+  block:
+    - name: Create source directories
+      file:
+        path: "/mnt/shared/{{ item }}"
+        state: directory
+        owner: "{{ ansible_user_id }}"
+        group: "{{ ansible_user_id }}"
+        mode: '0755'
+      loop: "{{ shared_dirs }}"
+
+    - name: Create target directories in /usr/local/share
+      file:
+        path: "/usr/local/share/{{ item }}"
+        state: directory
+        mode: '0755'
+      loop: "{{ shared_dirs }}"
+
+    - name: Add bind mounts to fstab
+      mount:
+        path: "/usr/local/share/{{ item }}"
+        src: "/mnt/shared/{{ item }}"
+        fstype: none
+        opts: bind
+        state: mounted
+      loop: "{{ shared_dirs }}"
