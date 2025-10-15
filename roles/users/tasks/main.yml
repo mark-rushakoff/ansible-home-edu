@@ -1,0 +1,29 @@
+---
+- name: Ensure required groups exist
+  group:
+    name: "{{ item }}"
+    state: present
+    loop: "{{ users | map(attribute='groups') | flatten | unique }}"
+    when: users | length > 0
+
+- name: Create users
+  user:
+    name: "{{ item.name }}"
+    groups: "{{ item.groups | default([]) | join(',') }}"
+    append: yes
+    create_home: yes
+    shell: /bin/bash
+    state: present
+  loop: "{{ users }}"
+  when: users | length > 0
+
+- name: Set user quotas
+  community.general.quota:
+    type: user
+    name: "{{ item.name }}"
+    mountpoint: /home
+    bsoft: "{{ item.quota_soft }}"
+    bhard: "{{ item.quota_hard }}"
+    state: present
+  loop: "{{ users }}"
+  when: users | length > 0

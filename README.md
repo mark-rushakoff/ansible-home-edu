@@ -85,3 +85,27 @@ Finally we should be able to run the playbook:
 ```sh
 ansible-playbook -i inventory.ini playbook.yml -v -K
 ```
+
+### Adding users
+
+Add a yaml file, `inventory/localhost.yml` structured like this:
+
+```yaml
+---
+users:
+  - name: alice
+    groups: [students, music]
+    quota_soft: 15G
+    quota_hard: 18G
+  - name: bob
+    groups: [students]
+    quota_soft: 10G
+    quota_hard: 12G
+```
+
+Then the user role in the playbook should add those two users.
+If an existing user matches the name, those groups will be _added_ to the user's existing groups.
+
+Those users will not have a password, so they cannot log in until someone runs
+`sudo passwd alice` or `sudo passwd bob`, with that example,
+to set their passwords manually.
