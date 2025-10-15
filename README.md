@@ -88,7 +88,7 @@ ansible-playbook -i inventory.ini playbook.yml -v -K
 
 ### Adding users
 
-Add a yaml file, `inventory/localhost.yml` structured like this:
+Add a yaml file, `host_vars/localhost.yml` structured like this:
 
 ```yaml
 ---
