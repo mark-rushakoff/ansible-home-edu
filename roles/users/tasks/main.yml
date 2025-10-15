@@ -3,8 +3,8 @@
   group:
     name: "{{ item }}"
     state: present
-    loop: "{{ users | map(attribute='groups') | flatten | unique }}"
-    when: users | length > 0
+  loop: "{{ users | map(attribute='groups') | flatten | unique }}"
+  when: users | length > 0
 
 - name: Create users
   user:

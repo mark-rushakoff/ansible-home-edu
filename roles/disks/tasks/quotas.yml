@@ -15,5 +15,12 @@
   args:
     creates: /home/aquota.user
 
+- name: Check if quotas are already enabled
+  command: quotaon -p /home
+  register: quota_status
+  failed_when: false
+  changed_when: false
+
 - name: Enable quotas on /home
   command: quotaon /home
+  when: "'is on' not in quota_status.stdout"
