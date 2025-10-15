@@ -18,12 +18,11 @@
   when: users | length > 0
 
 - name: Set user quotas
-  community.general.quota:
-    type: user
-    name: "{{ item.name }}"
-    mountpoint: /home
-    bsoft: "{{ item.quota_soft }}"
-    bhard: "{{ item.quota_hard }}"
-    state: present
+  command: >
+    setquota -u "{{ item.name }}"
+    "{{ item.quota_soft }}"
+    "{{ item.quota_hard }}"
+    0 0 /home
   loop: "{{ users }}"
   when: users | length > 0
+  changed_when: false
