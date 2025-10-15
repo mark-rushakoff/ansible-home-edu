@@ -70,19 +70,6 @@
         update_cache: yes
       when: needs_rebuild
 
-    - name: Ensure .build directory exists (skipping build.sh interactivity)
-      file:
-        path: "{{ aseprite_install_dir }}/.build"
-        state: directory
-        mode: '0755'
-      when: needs_rebuild
-
-    - name: Place 'userkind' file in .build directory (skipping build.sh interactivity)
-      copy:
-        content: "user"
-        dest: "{{ aseprite_install_dir }}/.build/userkind"
-      when: needs_rebuild
-
     - name: Clone or checkout (skia for aseprite)
       git:
         repo: "https://github.com/aseprite/skia.git"
@@ -120,14 +107,20 @@
       args:
         chdir: "{{ skia_install_dir }}"
 
-    - name: Place HEAD_skia_dir in .build directory (HEAD comes from rev-parsing the way we check out the repo)
-      copy:
-        content: "{{ skia_install_dir }}"
-        dest: "{{ aseprite_install_dir }}/.build/HEAD_skia_dir"
-      when: needs_rebuild
+    - name: Configure aseprite
+      command: |
+        sh -c '
+        cmake -B "{{ aseprite_install_dir }}/build" -S "{{ aseprite_install_dir }}" -G Ninja \
+         -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+         -DLAF_BACKEND=skia \
+         -DSKIA_DIR="{{ skia_install_dir }}" \
+         -DSKIA_LIBRARY_DIR="{{ skia_install_dir }}/out/Release-x64"
+        '
+      args:
+        chdir: "{{ aseprite_install_dir }}"
 
-    - name: Build aseprite using build.sh
-      command: ./build.sh < /dev/null
+    - name: Build aseprite
+      command: cmake --build "{{ aseprite_install_dir }}/build" -- aseprite
       args:
         chdir: "{{ aseprite_install_dir }}"
       when: needs_rebuild

@@ -79,10 +79,5 @@
 - name: Download Furnace Tracker
   include_tasks: furnace.yml
 
-# TODO: fix this and re-enable it.
-# The build.sh script really wants to be interactive,
-# so we should just call cmake directly like the script does,
-# to avoid the interactivity.
-# We're hardcoding the aseprite version anyway so what difference does it make?
-#- name: Build aseprite
-#  include_tasks: aseprite.yml
+- name: Build aseprite
+  include_tasks: aseprite.yml
