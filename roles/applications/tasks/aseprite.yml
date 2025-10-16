@@ -17,6 +17,8 @@
 
         depot_tools_install_dir: /home/ansible-builder/depot_tools
 
+    # Aseprite rebuild check:
+
     - name: Check if aseprite version state file exists
       stat:
         path: "{{ aseprite_state_file }}"
@@ -28,9 +30,32 @@
       register: aseprite_current_version
       when: aseprite_state.stat.exists
 
-    - name: Set rebuild flag
+    - name: Set initial rebuild flag (aseprite version check)
       set_fact:
+        aseprite_version_changed: "{{ not aseprite_state.stat.exists or (aseprite_current_version.content | b64decode | trim) != aseprite_version }}"
         needs_rebuild: "{{ not aseprite_state.stat.exists or (aseprite_current_version.content | b64decode | trim) != aseprite_version }}"
+
+    # Skia rebuild check:
+
+    - name: Check if skia version state file exists
+      stat:
+        path: "{{ skia_state_file }}"
+      register: skia_state
+
+    - name: Read current skia version from state file
+      slurp:
+        path: "{{ skia_state_file }}"
+      register: skia_current_version
+      when: skia_state.stat.exists
+
+    - name: Set skia rebuild flag
+      set_fact:
+        skia_needs_rebuild: "{{ not skia_state.stat.exists or (skia_current_version.content | b64decode | trim) != skia_tag }}"
+
+    - name: Update main rebuild flag if Skia needs built
+      set_fact:
+        needs_rebuild: true
+      when: skia_needs_build
 
     - name: Clone or checkout aseprite
       git:
@@ -55,6 +80,8 @@
         chdir: "{{ aseprite_install_dir }}"
       when: needs_rebuild
 
+    # Common dependencies:
+
     - name: Install aseprite and skia build dependencies
       become: yes
       become_user: root # Explicitly need root due to outer 'become'.
@@ -72,7 +99,7 @@
           - libxrandr-dev
         state: present
         update_cache: yes
-      when: needs_rebuild
+      when: needs_rebuild or skia_needs_build
 
     - name: Clone or checkout (skia for aseprite)
       git:
@@ -82,14 +109,14 @@
         update: yes
         clone: yes
       register: git_checkout
-      when: needs_rebuild
+      when: skia_needs_build
 
     - name: Verify skia SHA matches expected (for supply chain security)
       assert:
         that:
           - git_checkout.after == skia_sha
         fail_msg: "expected SHA {{ skia_sha }}, got {{ git_checkout.after }}"
-      when: needs_rebuild
+      when: skia_needs_build
 
     - name: Clone or checkout depot_tools
       git:
@@ -98,7 +125,7 @@
         version: "main"
         update: yes
         clone: yes
-      when: needs_rebuild
+      when: skia_needs_build
 
     - name: Build skia
       command: |
@@ -110,6 +137,14 @@
         ninja -C out/Release-x64 skia modules'
       args:
         chdir: "{{ skia_install_dir }}"
+      when: skia_needs_build
+
+    - name: Write skia version state file
+      copy:
+        content: "{{ skia_tag }}"
+        dest: "{{ skia_state_file }}"
+        mode: '0644'
+      when: skia_needs_build
 
     - name: Configure aseprite
       command: |
@@ -122,9 +157,23 @@
         '
       args:
         chdir: "{{ aseprite_install_dir }}"
+      when: needs_rebuild
 
     - name: Build aseprite
       command: cmake --build "{{ aseprite_install_dir }}/build" -- aseprite
       args:
         chdir: "{{ aseprite_install_dir }}"
+      when: needs_rebuild
+
+    - name: Copy entire aseprite build directory to /opt/aseprite
+      ansible.posix.synchronize:
+        src: "{{ aseprite_install_dir }}/build"
+        dest: /opt/aseprite
+        delete: yes  # This ensures full replacement of destination
+
+    - name: Write aseprite version state file
+      copy:
+        content: "{{ aseprite_version }}"
+        dest: "{{ aseprite_state_file }}"
+        mode: '0644'
       when: needs_rebuild
