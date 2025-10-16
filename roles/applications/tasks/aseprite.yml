@@ -175,6 +175,8 @@
       when: needs_rebuild
 
     - name: Symlink aseprite to /usr/local/bin/
+      become: yes
+      become_user: root # Explicitly need root due to outer 'become'.
       file:
         src: "/opt/aseprite/bin/aseprite"
         dest: /usr/local/bin/aseprite
@@ -186,3 +188,5 @@
         dest: "{{ aseprite_state_file }}"
         mode: '0644'
       when: needs_rebuild
+
+# TODO: add .desktop file
