@@ -50,7 +50,7 @@
 
     - name: Set skia rebuild flag
       set_fact:
-        skia_needs_rebuild: "{{ not skia_state.stat.exists or (skia_current_version.content | b64decode | trim) != skia_tag }}"
+        skia_needs_build: "{{ not skia_state.stat.exists or (skia_current_version.content | b64decode | trim) != skia_tag }}"
 
     - name: Update main rebuild flag if Skia needs built
       set_fact:
@@ -166,10 +166,19 @@
       when: needs_rebuild
 
     - name: Copy entire aseprite build directory to /opt/aseprite
+      become: yes
+      become_user: root # Explicitly need root due to outer 'become'.
       ansible.posix.synchronize:
         src: "{{ aseprite_install_dir }}/build"
         dest: /opt/aseprite
         delete: yes  # This ensures full replacement of destination
+      when: needs_rebuild
+
+    - name: Symlink aseprite to /usr/local/bin/
+      file:
+        src: "/opt/aseprite/bin/aseprite"
+        dest: /usr/local/bin/aseprite
+        state: link
 
     - name: Write aseprite version state file
       copy:
