@@ -69,4 +69,18 @@
     dest: "{{ furnace_state_file }}"
   when: not furnace_state.stat.exists or furnace_installed_version != furnace_version
 
-# TODO: add .desktop file
+- name: Install Furnace Tracker .desktop file globally
+  copy:
+    dest: "/usr/share/applications/furnace-tracker.desktop"
+    content: |
+      [Desktop Entry]
+      Version=1.0
+      Type=Application
+      Name=Furnace Tracker
+      Comment=Chiptune and Tracker Music Software
+      Exec={{ furnace_install_dir }}/furnace
+      Icon={{ furnace_install_dir }}/furnace.png
+      Terminal=false
+      Categories=Audio;Music;Midi;
+    mode: '0644'
+    force: true

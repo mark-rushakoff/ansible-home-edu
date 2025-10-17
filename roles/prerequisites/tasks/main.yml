@@ -10,6 +10,11 @@
       - quota # For disk management stuff later.
     state: present
 
+- name: Create shareowners group (for ownership of certain shared directories)
+  ansible.builtin.group:
+    name: shareowners
+    state: present
+
 - name: Create ansible-builder user
   ansible.builtin.user:
     name: ansible-builder

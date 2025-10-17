@@ -189,4 +189,20 @@
         mode: '0644'
       when: needs_rebuild
 
-# TODO: add .desktop file
+    - name: Install Aseprite .desktop file globally
+      become: yes
+      become_user: root # Explicitly need root due to outer 'become'.
+      copy:
+        dest: "/usr/share/applications/aseprite.desktop"
+        content: |
+          [Desktop Entry]
+          Version=1.0
+          Type=Application
+          Name=Aseprite
+          Comment=Animated Sprite Editor & Pixel Art Tool
+          Exec=/opt/aseprite/aseprite
+          Icon=/opt/aseprite/aseprite.png
+          Terminal=false
+          Categories=Graphics;2DGraphics;PixelArt;
+        mode: '0644'
+        force: true

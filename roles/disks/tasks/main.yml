@@ -25,14 +25,15 @@
         path: "/mnt/shared/{{ item }}"
         state: directory
         owner: "{{ ansible_user_id }}"
-        group: "{{ ansible_user_id }}"
-        mode: '0755'
+        group: shareowners
+        mode: '2775'
       loop: "{{ shared_dirs }}"
 
     - name: Create target directories in /usr/local/share
       file:
         path: "/usr/local/share/{{ item }}"
         state: directory
+        gruop: shareowners
         mode: '0755'
       loop: "{{ shared_dirs }}"
 
