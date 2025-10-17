@@ -66,6 +66,8 @@
 
       # Basic educational.
       - org.kde.gcompris
+      - org.kde.ktouch
+      - org.kde.marble
 
       # Programming educational.
       - org.kde.kturtle
