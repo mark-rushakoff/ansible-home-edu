@@ -3,7 +3,7 @@
 
   # vars need to come from host_vars file
   
-  tasks:
+  block:
     - name: Flush existing iptables rules
       iptables:
         flush: yes
@@ -19,7 +19,7 @@
     - name: Allow loopback traffic (output)
       iptables:
         chain: OUTPUT
-        in_interface: lo
+        out_interface: lo
         jump: ACCEPT
         comment: Allow loopback output
 
@@ -44,11 +44,11 @@
         jump: DROP
 
     - name: Allow internet_users from variable
-      ipatables:
+      iptables:
         chain: OUTPUT
+        protocol: all
         out_interface: "!lo"
-        match: owner
-        owner_uid: "{{ lookup('pipe', 'id -u ' + item) }}"
+        uid_owner: "{{ lookup('pipe', 'id -u ' + item) }}"
         jump: ACCEPT
         comment: "Allow  {{ item }} internet accesss"
       loop: "{{ internet_users }}"
