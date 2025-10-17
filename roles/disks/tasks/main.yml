@@ -33,7 +33,7 @@
       file:
         path: "/usr/local/share/{{ item }}"
         state: directory
-        gruop: shareowners
+        group: shareowners
         mode: '0755'
       loop: "{{ shared_dirs }}"
 
