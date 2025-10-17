@@ -8,6 +8,7 @@
     name:
       - acl # For switching to ansible-builder user.
       - quota # For disk management stuff later.
+      - iptables-persistent # For internet access control.
     state: present
 
 - name: Create shareowners group (for ownership of certain shared directories)

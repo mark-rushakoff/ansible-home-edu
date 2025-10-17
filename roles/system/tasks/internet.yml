@@ -1,0 +1,82 @@
+- name: Configure iptables to disallow internet access by default
+  become: yes
+
+  # vars need to come from host_vars file
+  
+  tasks:
+    - name: Flush existing iptables rules
+      iptables:
+        flush: yes
+        table: filter
+
+    - name: Allow loopback traffic (input)
+      iptables:
+        chain: INPUT
+        in_interface: lo
+        jump: ACCEPT
+        comment: Allow loopback input
+
+    - name: Allow loopback traffic (output)
+      iptables:
+        chain: OUTPUT
+        in_interface: lo
+        jump: ACCEPT
+        comment: Allow loopback output
+
+    - name: Allow established and related connections (input)
+      iptables:
+        chain: INPUT
+        ctstate: ESTABLISHED,RELATED
+        jump: ACCEPT
+        comment: Allow established connections (input)
+
+    - name: Allow established and related connections (output)
+      iptables:
+        chain: OUTPUT
+        ctstate: ESTABLISHED,RELATED
+        jump: ACCEPT
+        comment: Allow established connections (output)
+
+    - name: Block outbound traffic by default
+      iptables:
+        chain: OUTPUT
+        out_interface: "!lo"
+        jump: DROP
+
+    - name: Allow internet_users from variable
+      ipatables:
+        chain: OUTPUT
+        out_interface: "!lo"
+        match: owner
+        owner_uid: "{{ lookup('pipe', 'id -u ' + item) }}"
+        jump: ACCEPT
+        comment: "Allow  {{ item }} internet accesss"
+      loop: "{{ internet_users }}"
+
+    - name: Set default INPUT policy to DROP
+      iptables:
+        chain: INPUT
+        policy: DROP
+        comment: "Default drop inbound"
+
+    - name: Set default OUTPUT policy to DROP
+      iptables:
+        chain: OUTPUT
+        policy: DROP
+        comment: "Default drop outbound"
+
+    - name: Set default FORWARD policy to DROP
+      iptables:
+        chain: FORWARD
+        policy: DROP
+        comment: "Default drop forwarding"
+
+    - name: Save iptables rules to persist on reboot
+      shell: iptables-save > /etc/iptables/rules.v4
+      changed_when: false
+
+    - name: Ensure iptables-persistent loads rules on boot
+      systemd:
+        name: iptables-persistent
+        enabled: yes
+        state: started

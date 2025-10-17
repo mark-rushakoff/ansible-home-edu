@@ -1,0 +1,2 @@
+- name: Restrict internet access
+  include_tasks: internet.yml
