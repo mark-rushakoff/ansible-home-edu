@@ -15,9 +15,10 @@
 - name: Create source directories for shared
   vars:
     shared_dirs:
-      - videos
       - documents
+      - images
       - music
+      - videos
 
   block:
     - name: Create source directories
