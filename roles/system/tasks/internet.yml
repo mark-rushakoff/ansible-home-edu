@@ -2,42 +2,61 @@
   become: yes
 
   # vars need to come from host_vars file
-  
+
   block:
-    - name: Reset UFW to defaults
-      ufw:
-        state: reset
-        force: yes
+    - name: 1. FLUSH all existing rules (filter table)
+      # Clears all rules from the standard chains to ensure a clean slate.
+      ansible.builtin.iptables:
+        table: filter
+        flush: true
+        comment: "Flush all existing rules"
 
-    - name: Set UFW policies to deny all.
-      ufw:
-        direction: "{{ item}}"
-        policy: deny
+    - name: 2. Set default policy for OUTPUT chain to DROP
+      # The fail-safe: blocks all outbound traffic by default.
+      # All packets will be dropped unless explicitly ACCEPTed by a preceding rule.
+      ansible.builtin.iptables:
+        chain: OUTPUT
+        table: filter
+        policy: DROP
+        comment: 'Default DROP for all outbound traffic'
+
+    - name: 3. Allow all loopback traffic (INPUT, OUTPUT)
+      # Must be an ACCEPT rule placed before the general DROP policy.
+      ansible.builtin.iptables:
+        chain: '{{ item }}'
+        table: filter
+        protocol: 'all'
+        in_interface: 'lo'
+        out_interface: 'lo'
+        jump: ACCEPT
+        state: present
+        comment: 'Allow full loopback access for all users/processes'
       loop:
-        - incoming
-        - outgoing
-        - routed
+        - INPUT
+        - OUTPUT
 
-    - name: Allow loopback traffic
-      ufw:
-        rule: allow
-        interface: lo
-        direction: "{{ item }}"
-      loop:
-        - incoming
-        - outgoing
+    - name: 4. Allow OUTPUT traffic for specific UIDs (The Override)
+      # This is the override rule. It is an ACCEPT rule that MUST precede the default DROP policy.
+      # We use lookup('pipe', ...) to execute 'id -u <username>' and get the UID.
+      ansible.builtin.iptables:
+        chain: OUTPUT
+        table: filter
+        protocol: 'all'
+        match: owner
+        # Inserting at position 1 ensures these rules are checked first in the OUTPUT chain.
+        insert: '1'
+        # The lookup runs the 'id -u' command for the current user and returns the UID.
+        # We must use 'item' which holds the username from the loop.
+        rule: '--uid-owner {{ lookup("pipe", "id -u " + item) }} -j ACCEPT'
+        state: present
+        comment: 'UID override for internet access ({{ item }})'
+      loop: '{{ internet_users }}'
 
-    - name: Configure iptables for internet_users
-      shell: |
-        {% for user in internet_users %}
-        iptables -I ufw-user-output -p tcp -m owner --uid-owner $(id -u {{ user }}) -j ACCEPT
-        iptables -I ufw-user-output -p udp -m owner --uid-owner $(id -u {{ user }}) -j ACCEPT
-        iptables -I ufw-user-output -p icmp -m owner --uid-owner $(id -u {{ user }}) -j ACCEPT
-        {% endfor %}
-      args:
-        executable: /bin/bash
-      changed_when: false
-
-    - name: Make iptables rules persistent with UFW
-      shell: ufw reload
-      changed_when: false
+    - name: 5. SAVE the iptables rules persistently using netfilter-persistent
+      # This saves the running configuration (which now includes the DROP policy and ACCEPT overrides)
+      # and ensures they are loaded on reboot.
+      ansible.builtin.service:
+        name: netfilter-persistent
+        state: started
+        args: save
+      changed_when: true
