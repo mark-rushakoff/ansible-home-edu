@@ -79,8 +79,8 @@
       Name=Furnace Tracker
       Comment=Chiptune and Tracker Music Software
       Exec={{ furnace_install_dir }}/furnace
-      Icon={{ furnace_install_dir }}/furnace.png
+      Icon={{ furnace_install_dir }}/icons/hicolor/128x128/apps/furnace.png
       Terminal=false
-      Categories=Audio;Music;Midi;
+      Categories=Audio;AudioVideo;Sound;Music;Midi;
     mode: '0644'
     force: true
