@@ -7,86 +7,37 @@
     - name: Reset UFW to defaults
       ufw:
         state: reset
+        force: yes
 
-    - name: Set default incoming policy to deny
+    - name: Set UFW policies to deny all.
       ufw:
-        direction: in
+        direction: "{{ item}}"
         policy: deny
+      loop:
+        - incoming
+        - outgoing
+        - routed
 
-    - name: Set default outgoing policy to deny
-      ufw:
-        direction: out
-        policy: deny
-
-    - name: Set default forward policy to deny
-      ufw:
-        direction: forward
-        policy: deny
-
-    - name: Allow loopback traffic in
+    - name: Allow loopback traffic
       ufw:
         rule: allow
         interface: lo
-        direction: in
+        direction: "{{ item }}"
+      loop:
+        - incoming
+        - outgoing
 
-    - name: Allow loopback traffic out
-      ufw:
-        rule: allow
-        interface: lo
-        direction: out
-
-    - name: Allow established connections in
-      ufw:
-        rule: allow
-        direction: in
-        policy: allow
-        comment: "allow established inbound"
-
-    - name: Allow established connections out
-      ufw:
-        rule: allow
-        direction: out
-        policy: allow
-        comment: "allow established outbound"
-
-    - name: Allow outbound TCP for authorized users
+    - name: Configure iptables for internet_users
       shell: |
         {% for user in internet_users %}
         iptables -I ufw-user-output -p tcp -m owner --uid-owner $(id -u {{ user }}) -j ACCEPT
-        {% endfor %}
-      args:
-        executable: /bin/bash
-      changed_when: false
-
-    - name: Allow outbound UDP for authorized users
-      shell: |
-        {% for user in internet_users %}
         iptables -I ufw-user-output -p udp -m owner --uid-owner $(id -u {{ user }}) -j ACCEPT
-        {% endfor %}
-      args:
-        executable: /bin/bash
-      changed_when: false
-
-    - name: Allow outbound ICMP for authorized users
-      shell: |
-        {% for user in internet_users %}
         iptables -I ufw-user-output -p icmp -m owner --uid-owner $(id -u {{ user }}) -j ACCEPT
         {% endfor %}
       args:
         executable: /bin/bash
       changed_when: false
 
-    - name: Enable UFW
-      ufw:
-        state: enabled
-
-    - name: Save iptables rules to persist on reboot
-      shell: iptables-save > /etc/iptables/rules.v4
+    - name: Make iptables rules persistent with UFW
+      shell: ufw reload
       changed_when: false
-
-    - name: Ensure netfilter-persistent loads rules on boot
-      systemd:
-        name: netfilter-persistent
-        enabled: yes
-        daemon_reload: yes
-        state: started
