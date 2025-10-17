@@ -35,7 +35,7 @@
         path: "/usr/local/share/{{ item }}"
         state: directory
         group: shareowners
-        mode: '0755'
+        mode: '2775'
       loop: "{{ shared_dirs }}"
 
     - name: Add bind mounts to fstab
