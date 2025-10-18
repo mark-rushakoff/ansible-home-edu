@@ -29,12 +29,15 @@
         jump: ACCEPT
         comment: 'Outbound traffic always allowed for system accounts'
 
-    - name: '"internet" group allowed for any outbound traffic'
-      shell: |
-        iptables -p all -m owner --gid-owner internet --suppl-groups -j ACCEPT
-      args:
-        executable: /bin/bash
-      changed_when: false
+    - name: Allow outbound traffic for users in internet_users var
+      ansible.builtin.iptables:
+        chain: OUTPUT
+        table: filter
+        protocol: 'all'
+        uid_owner: "{{ item }}"
+        jump: ACCEPT
+        comment: "Allow outbound traffic for 'internet' user {{ item }}"
+      loop: '{{ internet_users }}'
 
     - name: Set default policy for OUTPUT chain to DROP
       # The fail-safe: blocks all outbound traffic by default.
@@ -47,7 +50,7 @@
 
     - name: Save iptables rules to persist on reboot
       shell: iptables-save > /etc/iptables/rules.v4
-       changed_when: false
+      changed_when: false
 
     - name: Save the iptables rules persistently using netfilter-persistent
       # This saves the running configuration (which now includes the DROP policy and ACCEPT overrides)
