@@ -7,6 +7,9 @@
       - tree
       - htop
       - ffmpeg # Assists yt-dlp.
+
+      # Specialized utilities.
+      - dosbox-x # Some abandonware targeted for support.
     state: present
     update_cache: true
 
