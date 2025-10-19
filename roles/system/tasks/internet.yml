@@ -25,7 +25,7 @@
         table: filter
         chain: OUTPUT
         protocol: all
-        gid_owner: '0-999' # TODO: probably better to consult /etc/login.defs for UID_MIN and UID_MAX.
+        uid_owner: '0-999' # TODO: probably better to consult /etc/login.defs for UID_MIN and UID_MAX.
         jump: ACCEPT
         comment: 'Outbound traffic always allowed for system accounts'
 
