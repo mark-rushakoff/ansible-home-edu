@@ -100,6 +100,7 @@
         dest: /opt/appimages/ratarmount.AppImage
         checksum: 'sha256:261217307888a7f73f8f329a74d32a545699966e85008a4a13065218698ff4b6'
         mode: '0755'
+        timeout: 60
     - name: Symlink ratarmount
       file:
         src: /opt/appimages/ratarmount.AppImage
