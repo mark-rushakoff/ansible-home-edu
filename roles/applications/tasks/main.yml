@@ -24,9 +24,14 @@
 
       # For downloading tutorial/educational videos for offline use.
       - ppa:tomtomtom/yt-dlp
+
+      # Mounting ripped CD images.
+      - ppa:cdemu/ppa
     packages_to_install:
       - inkscape
       - yt-dlp
+      - cdemu-client
+      - cdemu-daemon
 
   block:
     - name: Get Ubuntu base codename from os-release
