@@ -87,6 +87,13 @@
   become: yes
 
   block:
+    - name: Ensure /opt/appimages directory exists
+      ansible.builtin.file:
+        path: /opt/appimages
+        state: directory
+        mode: '0755'
+        owner: root
+        group: root
     - name: Install ratarmount (for mounting compressed images)
       get_url:
         url: 'https://github.com/mxmlnkn/ratarmount/releases/download/v1.2.0/ratarmount-1.2.0-x86_64.AppImage'
