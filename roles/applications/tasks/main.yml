@@ -117,3 +117,6 @@
 
 - name: Build aseprite
   include_tasks: aseprite.yml
+
+- name: Install offline docs for Famistudio
+  include_tasks: famistudio_docs.yml

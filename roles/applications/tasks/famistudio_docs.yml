@@ -1,0 +1,88 @@
+- name: Build offline docs for Famistudio
+  become: yes
+  become_user: ansible-builder
+
+  vars:
+    famistudio_version: "4.4.2"
+    venv_dir: /home/ansible-builder/venv-mkdocs
+    docs_dir: /home/ansible-builder/famistudio-docs
+    version_marker: "{{ docs_dir }}/.ansible_version"
+
+  block:
+    - name: Check existing version marker
+      stat:
+        path: "{{ version_marker }}"
+      register: marker_file
+
+    - name: Read existing version
+      slurp:
+        src: "{{ version_marker }}"
+      register: existing_version
+      when: marker_file.stat.exists
+
+    - name: Set version match fact
+      set_fact:
+        version_matches: "{{ marker_file.stat.exists and (existing_version.content | b64decode | trim) == famistudio_version }}"
+      when: marker_file.stat.exists
+
+    - name: Set version match fact when missing
+      set_fact:
+        version_matches: false
+      when: not marker_file.stat.exists
+
+    - name: Create docs dir
+      file:
+        path: "{{ docs_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Clean old version
+      file:
+        path: "{{ docs_dir }}/famistudio-{{ existing_version.content | b64decode | trim }}"
+        state: absent
+      when: marker_file.stat.exists and not version_matches
+
+    - name: Download source tarball
+      get_url:
+        url: "https://github.com/BleuBleu/FamiStudio/archive/refs/tags/{{ famistudio_version }}.tar.gz"
+        dest: "{{ docs_dir }}/famistudio-{{ famistudio_version }}.tar.gz"
+      when: not version_matches
+
+    - name: Extract source tarball
+      unarchive:
+        src: "{{ docs_dir }}/famistudio-{{ famistudio_version }}.tar.gz"
+        dest: "{{ docs_dir }}"
+        remote_src: yes
+      when: not version_matches
+
+    - name: Create virtual environment
+      command: python3 -m venv {{ venv_dir }}
+      args:
+        creates: "{{ venv_dir }}/bin/activate"
+      when: not version_matches
+
+    - name: Install mkdocs in venv
+      pip:
+        name:
+          - mkdocs
+          - mkdocs-material
+        virtualenv: "{{ venv_dir }}"
+      when: not version_matches
+
+    - name: Build static HTML docs
+      command: "{{ venv_dir }}/bin/mkdocs build"
+      args:
+        chdir: "{{ docs_dir }}/FamiStudio-{{ famistudio_version }}/Docs"
+      when: not version_matches
+
+    - name: Copy docs to shared folder
+      synchronize:
+        src: "{{ docs_dir }}/FamiStudio-{{ famistudio_version }}/Docs/site/"
+        dest: "/usr/local/share/documents/famistudio"
+      when: not version_matches
+
+    - name: Write version marker
+      copy:
+        content: "{{ famistudio_version }}"
+        dest: "{{ version_marker }}"
+      when: not version_matches
