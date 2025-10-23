@@ -22,3 +22,5 @@
     state: present
     create_home: yes
     system: true
+    append: true
+    groups: [shareowners]

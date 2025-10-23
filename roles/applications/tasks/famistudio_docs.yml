@@ -77,6 +77,12 @@
         chdir: "{{ docs_dir }}/FamiStudio-{{ famistudio_version }}/Docs"
       when: not version_matches
 
+    - name: Ensure shared docs directory exists
+      file:
+        path: "/usr/local/share/documents/famistudio"
+        state: directory
+        mode: '0755' # Since generated, maybe don't let group write to it.
+
     - name: Copy docs to shared folder
       synchronize:
         src: "{{ docs_dir }}/FamiStudio-{{ famistudio_version }}/Docs/site/"
