@@ -67,6 +67,7 @@
           - mkdocs
           - mkdocs-material
           - mkdocs-bootswatch
+          - mkdocs-meta-descriptions-plugin
         virtualenv: "{{ venv_dir }}"
       when: not version_matches
 
