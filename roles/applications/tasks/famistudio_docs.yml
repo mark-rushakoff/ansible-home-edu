@@ -46,6 +46,7 @@
       get_url:
         url: "https://github.com/BleuBleu/FamiStudio/archive/refs/tags/{{ famistudio_version }}.tar.gz"
         dest: "{{ docs_dir }}/famistudio-{{ famistudio_version }}.tar.gz"
+        timeout: 120
       when: not version_matches
 
     - name: Extract source tarball
