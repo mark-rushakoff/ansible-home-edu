@@ -19,6 +19,7 @@
       - images
       - music
       - videos
+      - dos
 
   block:
     - name: Create source directories
